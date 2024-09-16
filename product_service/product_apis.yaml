@@ -1,0 +1,276 @@
+openapi: 3.0.0
+info:
+  title: Product Management API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000/api
+    description: Development server
+paths:
+  /users/register:
+    post:
+      summary: Register a new user
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /users/login:
+    post:
+      summary: Login a user
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: User logged in successfully, returns a token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '401':
+          description: Unauthorized
+
+  /products:
+    get:
+      summary: Retrieve a paginated list of products
+      tags:
+        - Product
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: Page number for pagination
+        - in: query
+          name: keyword
+          schema:
+            type: string
+          description: Filter products by keyword
+        - in: query
+          name: category_id
+          schema:
+            type: integer
+          description: Filter products by category ID
+      responses:
+        '200':
+          description: A paginated list of products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Authentication credentials were not provided.
+
+  /products/{id}:
+    get:
+      summary: Retrieve a specific product's details
+      tags:
+        - Product
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID of the product
+      responses:
+        '200':
+          description: Product details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Product not found
+
+  /products/{id}/comments:
+    post:
+      summary: Add a comment to a product
+      tags:
+        - Comment
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID of the product to comment on
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Comment'
+      responses:
+        '201':
+          description: Comment added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '401':
+          description: Unauthorized
+
+  /comments/{id}:
+    post:
+      summary: Reply to a comment
+      tags:
+        - Comment
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID of the comment to reply to
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                content:
+                  type: string
+      responses:
+        '201':
+          description: Reply added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '401':
+          description: Unauthorized
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+        full_name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        token:
+          type: string
+          readOnly: true
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        shop_id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        image:
+          type: string
+        attributes:
+          type: object
+        stock:
+          type: integer
+        price:
+          type: number
+        product_categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductCategory'
+        product_images:
+          type: array
+          items:
+            type: string
+        list_of_comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        display_name:
+          type: string
+        no_sub:
+          type: integer
+        name:
+          type: string
+    ProductCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        product_id:
+          type: integer
+        category:
+          $ref: '#/components/schemas/Category'
+    Comment:
+      type: object
+      properties:
+        user_id:
+          type: integer
+        product_id:
+          type: integer
+        content:
+          type: string
+        is_parent_comment:
+          type: boolean
+        parent_comment_id:
+          type: integer
+          nullable: true
