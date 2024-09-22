@@ -1,0 +1,12 @@
+{
+  "username": "frusha",
+  "password": "password123"
+}
+{
+  "username": "frusha123",
+  "password": "password123"
+}
+{
+  "username": "frusha12345",
+  "password": "password123"
+}
